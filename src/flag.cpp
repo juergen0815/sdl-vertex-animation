@@ -10,8 +10,8 @@
 
 #include <cmath>
 
-const int columns = 44;
-const int rows   = 44;
+const int columns = 45;
+const int rows    = 45;
 
 struct PoolDeleter
 {
@@ -35,43 +35,73 @@ Flag::Flag( const std::vector< BrushPtr >& assets )
     m_VertexBuffer.resize( columns*rows );
     m_TexCoordBuffer.resize( columns*rows );
 
+
+    // generate index array; we got rows * columns * 2 tris
+    m_IndexArray.resize( (rows-1) * (columns-1) * 3 * 2 ); // 3 vertices per tri, 2 tri per quad = 6 entries per iteration
+
+    int looper(0);
     // generate vertex array
-    float vx;
-    float vy;
-    float vz;
-    const float step = 0.2f;
-    const float amp  = 2.0f;
+    const float step = 0.2f; // mesh sub divider
+    const float amp  = 2.0f; // "height" of wave
     const float loop = 8.0f; // num of sin loops (or waves)
-    auto vertex = m_VertexBuffer.begin();
+    const float pi   = 3.14159265358979323846f * 1.0f; // pi/2
+    auto vit = m_VertexBuffer.begin();
+    auto tit = m_TexCoordBuffer.begin();
+
+    // I think we need an additional row/column to finish this mesh ??
     for ( float y = 0; y < rows; ++y )
     {
-        for ( float x = 0; x < columns; ++x, ++vertex )
+        for ( float x = 0; x < columns; ++x, ++vit )
         {
-            vertex[ Vector::X ] = x * step - 4.4f;
-            vertex[ Vector::Y ] = y * step - 4.4f;
+            Vector& vertex = *vit;
+            vertex[ Vector::X ] = x * step - 4.4f; // -4.4 ... +4.4
+            vertex[ Vector::Y ] = y * step - 4.4f; // -4.4 ... +4.4
             // maybe I should shift this for each row, huh, norm x to "length" of column (0.0 - 1.0)
-            vertex[ Vector::Z ] = std::sin( (x / columns) * ( M_PI / 180.0f * loop) ) * amp; // make z a big "wavy"
+            vertex[ Vector::Z ] = std::sin( (x / columns) * ( pi * loop) ) * amp; // make z a big "wavy"
+
+            float xu  = x/columns;
+            float yu  = y/rows;
+
+            Vector& texCoord = *tit; ++tit;
+            texCoord[ Vector::X ] = xu;
+            texCoord[ Vector::X ] = yu;
+            texCoord[ Vector::Z ] = 0;   // not used v- but we use a float[4] array even for textures (for later we can use bump maps etc. with those vectors)
+
+            // this needs work: we use a row * col vertex and texture array
+            // to extract triangles, the index array needs to be calculated appropriately
+            //        0  1  2...n
+            //        +--+--+...
+            //        |\ |\ |
+            //        | \| \|
+            //        +--+--+
+            // n*y +  0' 1' 2'...(n+1)*y
+
+            // e.g. t[0] = { 0,1,1'} { 1',0',1 } ...
+
+            // skip last column/row - already indexed
+            if ( x < (columns-1) && y < (rows-1) ) {
+                // vertices don't need to be set just yet. We just index them here
+
+                // top tri
+                m_IndexArray[ looper++ ] = int(x + 0 + columns*y);
+                m_IndexArray[ looper++ ] = int(x + 1 + columns*y);
+                m_IndexArray[ looper++ ] = int(x + 1 + columns*(y+1)); // bottom row
+
+                // bottom tri
+                m_IndexArray[ looper++ ] = int(x + 1 + columns*(y+1)); // bottom row
+                m_IndexArray[ looper++ ] = int(x +     columns*(y+1)); // bottom row
+                m_IndexArray[ looper++ ] = int(x +   + columns*y);
+            }
         }
-    }
-    // generate index array; we got rows * columns * 2 tris
-    m_IndexArray.resize( rows * columns * 3 * 2 ); // 3 vertices per tri, 2 tri per quad = 6 entries per iteration
-    int looper(0);
-    for ( ; looper < rows*columns; ++looper ) {
-        // map 4 quad vertices to 6 tris
-        // top tri 0 - 1 - 2
-        m_IndexArray[ looper + 0 ] = 0+looper;
-        m_IndexArray[ looper + 1 ] = 1+looper;
-        m_IndexArray[ looper + 2 ] = 3+looper;
-        // bottom tri 3- 1- 2
-        m_IndexArray[ looper + 3 ] = 3+looper;
-        m_IndexArray[ looper + 4 ] = 1+looper;
-        m_IndexArray[ looper + 5 ] = 2+looper;
     }
 }
 
 Flag::~Flag()
 {
-
+    // shouldn't be done in d'tor...might be weakly linked to e.g. event handler...but vbo must be released from render thread
+    if ( m_VboID > 0 ) {
+        glDeleteBuffers(1, &m_VboID);
+    }
 }
 
 bool Flag::DoInitialize( Renderer* renderer ) throw(std::exception)
@@ -121,6 +151,9 @@ void Flag::DoRender() throw(std::exception)
         glEnableClientState(GL_COLOR_ARRAY);
     }
 #endif
+
+    glColor4f( 0.0f, 0.4f, 1.0f, 0.8f );
+
     int vertexArrayEnabled;
     glGetIntegerv( GL_VERTEX_ARRAY, &vertexArrayEnabled );
     if (!vertexArrayEnabled) {
@@ -192,26 +225,17 @@ void Flag::DoRender() throw(std::exception)
             glEnable( GL_BLEND );
         }
     }
-
-
 }
 
 void Flag::DoUpdate( float ticks ) throw(std::exception)
 {
-    ASSERT( m_VertexBuffer <= rows*columns, "Vertex array to small!" );
-
-    // TODO: Do vertex animation
+    // TODO: animate vertices
     auto vertex = m_VertexBuffer.begin();
     for ( float y = 0; y < rows; ++y )
     {
         for ( float x = 0; x < columns; ++x, ++vertex )
         {
-//            vx = x * step;
-//            vy = y * step;
-//            vz = std::sin( x / colums * M_PI / 360.0f ) * amp; // make z a big "wavy"
-//            vertex[ Vector::X ] = vx;
-//            vertex[ Vector::Y ] = vy;
-//            vertex[ Vector::Z ] = vz;
+
         }
     }
 }

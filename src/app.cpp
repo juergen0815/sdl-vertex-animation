@@ -23,6 +23,7 @@
 
 #include <boost/thread.hpp>
 #include <boost/bind.hpp>
+#include <boost/filesystem.hpp>
 
 // based on NeHe: http://nehe.gamedev.net/tutorial/bump-mapping,_multi-texturing_&_extensions/16009/
 
@@ -112,41 +113,30 @@ void App::InitScene( int width, int height )
     BOOST_ASSERT(renderer);
     renderer->Init();
 
-    std::vector< BrushPtr > brush1;
+    std::vector< BrushPtr > brushes;
     try {
         // base texture
         TgaBrush* base( new TgaBrush );
         ASSERT( base->Load( "data/Fieldstone.tga"), "Error loading base texture" );
-        brush1.push_back( BrushPtr(base) );
+        brushes.push_back( BrushPtr(base) );
 
-        BmpBrush* normal( new BmpBrush );
-        ASSERT( normal->Load( "data/FieldstoneNoisy.bmp"), "Error loading normal maps" );
-        brush1.push_back( BrushPtr(normal) );
+        TgaBrush* normal( new TgaBrush );
+        ASSERT( normal->Load( "data/FieldstoneNoisy.tga"), "Error loading normal maps" );
+        brushes.push_back( BrushPtr(normal) );
 
         // TODO: add 8 bit support for BMP loader
         DdsBrush* alpha( new DdsBrush );
         ASSERT( alpha->Load( "data/ScratchMetal.dds"), "Error loading specular maps" );
-        brush1.push_back( BrushPtr(alpha) );
+        brushes.push_back( BrushPtr(alpha) );
 
-    } catch ( ... ) {
+
+    } catch ( boost::filesystem::filesystem_error &ex ) {
         throw;
-    }
-
-    std::vector< BrushPtr > brush2;
-    try {
-        // base texture
-        DdsBrush* base( new DdsBrush );
-        ASSERT( base->Load( "data/MetalDecoA.dds"), "Error loading base texture" );
-        brush2.push_back( BrushPtr(base) );
-
-        BmpBrush* normal( new BmpBrush );
-        ASSERT( normal->Load( "data/rocks1.bmp"), "Error loading normal maps" );
-        brush2.push_back( BrushPtr(normal) );
-
-//        BmpBrush* alpha( new BmpBrush );
-//        ASSERT( alpha->Load( "data/MetalDecoB_SPEC.bmp"), "Error loading specular maps" );
-//        brush2.push_back( BrushPtr(alpha) );
-    } catch( ... ) {
+    } catch ( std::ios_base::failure& ex ) {
+        THROW( "Error loading texture.\n%s", ex.what() );
+    } catch ( std::exception &ex ) {
+        throw;
+    } catch ( ... ) {
         throw;
     }
 
@@ -167,7 +157,7 @@ void App::InitScene( int width, int height )
     // this entity renders
     viewport->AddEntity(camera, 0);
 
-    EntityPtr flag( new Flag( ) );
+    EntityPtr flag( new Flag( brushes ) );
     flag->GetRenderState()->Translate( Vector(0.0, 0, 10), Vector(2.0f, 2.0f, 2.0f) );
     flag->GetRenderState()->Rotate( Vector(0.0f, 0.0f, 0.0f ) );
     // this entity renders

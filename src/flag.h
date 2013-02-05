@@ -40,11 +40,11 @@ protected:
 
     typedef std::vector<Vector, Allocator<Vector>> VertexVector;
 
+    boost::shared_ptr<MemoryPool> m_MemoryPool;
+
     VertexVector m_VertexBuffer;      // linear vertex buffer - custom allocator
     VertexVector m_TexCoordBuffer;    // linear texture coord buffer - custom allocator (4 component...for now)
     std::vector<int>  m_IndexArray;   // standard array to map vertices to tris
-
-    boost::shared_ptr<MemoryPool> m_MemoryPool;
 
 public:
     Flag( const std::vector< BrushPtr >& assets );
