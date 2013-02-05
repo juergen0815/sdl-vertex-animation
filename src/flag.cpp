@@ -10,8 +10,8 @@
 
 #include <cmath>
 
-const int columns = 45;
-const int rows    = 45;
+const int columns = 2;
+const int rows    = 2;
 
 struct PoolDeleter
 {
@@ -40,8 +40,12 @@ Flag::Flag( const std::vector< BrushPtr >& assets )
     m_IndexArray.resize( (rows-1) * (columns-1) * 3 * 2 ); // 3 vertices per tri, 2 tri per quad = 6 entries per iteration
 
     int looper(0);
+    // width x height is always a quad, not a rect
+    const float width_2  = 0.5f; // 4.4f - for columns = 45
+    const float height_2 = 0.5f;
+
     // generate vertex array
-    const float step = 0.2f; // mesh sub divider
+    const float step = 1.0f; // mesh sub divider - 0.2f
     const float amp  = 2.0f; // "height" of wave
     const float loop = 8.0f; // num of sin loops (or waves)
     const float pi   = 3.14159265358979323846f * 1.0f; // pi/2
@@ -54,13 +58,13 @@ Flag::Flag( const std::vector< BrushPtr >& assets )
         for ( float x = 0; x < columns; ++x, ++vit )
         {
             Vector& vertex = *vit;
-            vertex[ Vector::X ] = x * step - 4.4f; // -4.4 ... +4.4
-            vertex[ Vector::Y ] = y * step - 4.4f; // -4.4 ... +4.4
+            vertex[ Vector::X ] = x * step - width_2; // -4.4 ... +4.4
+            vertex[ Vector::Y ] = y * step - height_2; // -4.4 ... +4.4
             // maybe I should shift this for each row, huh, norm x to "length" of column (0.0 - 1.0)
             vertex[ Vector::Z ] = std::sin( (x / columns) * ( pi * loop) ) * amp; // make z a big "wavy"
 
-            float xu  = x/columns;
-            float yu  = y/rows;
+            float xu  = x/(columns-1);
+            float yu  = y/(rows-1);
 
             Vector& texCoord = *tit; ++tit;
             texCoord[ Vector::X ] = xu;
@@ -83,14 +87,15 @@ Flag::Flag( const std::vector< BrushPtr >& assets )
                 // vertices don't need to be set just yet. We just index them here
 
                 // top tri
-                m_IndexArray[ looper++ ] = int(x + 0 + columns*y);
-                m_IndexArray[ looper++ ] = int(x + 1 + columns*y);
-                m_IndexArray[ looper++ ] = int(x + 1 + columns*(y+1)); // bottom row
+                int
+                idx = int(x + 0 + columns*y);     m_IndexArray[ looper++ ] = idx;
+                idx = int(x + 1 + columns*y);     m_IndexArray[ looper++ ] = idx;
+                idx = int(x + 1 + columns*(y+1)); m_IndexArray[ looper++ ] = idx; // bottom row
 
                 // bottom tri
-                m_IndexArray[ looper++ ] = int(x + 1 + columns*(y+1)); // bottom row
-                m_IndexArray[ looper++ ] = int(x +     columns*(y+1)); // bottom row
-                m_IndexArray[ looper++ ] = int(x +   + columns*y);
+                idx = int(x + 1 + columns*(y+1)); m_IndexArray[ looper++ ] = idx; // bottom row
+                idx = int(x +     columns*(y+1)); m_IndexArray[ looper++ ] = idx; // bottom row
+                idx = int(x +   + columns*y);     m_IndexArray[ looper++ ] = idx;
             }
         }
     }
