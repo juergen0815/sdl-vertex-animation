@@ -10,8 +10,8 @@
 
 #include <cmath>
 
-const int columns = 2;
-const int rows    = 2;
+const int columns = 4;
+const int rows    = 4;
 
 struct PoolDeleter
 {
@@ -157,8 +157,6 @@ void Flag::DoRender() throw(std::exception)
     }
 #endif
 
-    glColor4f( 0.0f, 0.4f, 1.0f, 0.8f );
-
     int vertexArrayEnabled;
     glGetIntegerv( GL_VERTEX_ARRAY, &vertexArrayEnabled );
     if (!vertexArrayEnabled) {
@@ -206,6 +204,9 @@ void Flag::DoRender() throw(std::exception)
             float *texCoords = (float*)&m_TexCoordBuffer[0];
             glTexCoordPointer( 4, GL_FLOAT, 0, texCoords );
         }
+
+        glColor4f( 0.0f, 0.4f, 1.0f, 0.8f );
+
         int *indices = &m_IndexArray[0];
         glDrawElements(GL_TRIANGLES, m_IndexArray.size(), GL_UNSIGNED_INT, indices );
 #endif

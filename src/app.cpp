@@ -12,6 +12,7 @@
 #include "viewport.h"
 #include "camera.h"
 #include "flag.h"
+#include "cube.h"
 
 #include <bmp_loader.h>
 #include <dds_loader.h>
@@ -158,10 +159,16 @@ void App::InitScene( int width, int height )
     viewport->AddEntity(camera, 0);
 
     EntityPtr flag( new Flag( brushes ) );
-    flag->GetRenderState()->Translate( Vector(0.0, 0, 10), Vector(2.0f, 2.0f, 2.0f) );
+    flag->GetRenderState()->Translate( Vector(0.0, 0, 0), Vector(1.0f, 1.0f, 1.0f) );
     flag->GetRenderState()->Rotate( Vector(0.0f, 0.0f, 0.0f ) );
     // this entity renders
     camera->AddEntity(flag, 20 );
+
+    EntityPtr cube( new Cube() );
+    cube->GetRenderState()->Translate( Vector(-4.0, 0, 0), Vector(1.0f, 1.0f, 1.0f) );
+    cube->GetRenderState()->Rotate( Vector(0.0f, 0.0f, 0.0f ) );
+    // this entity renders
+    camera->AddEntity(cube, 20 );
 
     // some custom event handler
     m_EventHandlerList.push_back( boost::bind( &OnHandleEvent, _1, flag ) );
