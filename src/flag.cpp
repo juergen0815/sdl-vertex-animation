@@ -8,8 +8,12 @@
 
 #include "flag.h"
 #include "cube.h"
+#include "brush.h"
+#include <bmp_loader.h>
 
 #include <cmath>
+
+#include <boost/filesystem.hpp>
 
 const int columns = 120;
 const int rows    = 120;
@@ -103,7 +107,23 @@ Flag::Flag( const std::vector< BrushPtr >& assets )
 
     auto mid = m_VertexBuffer[ columns*rows/2-columns/2 ];
 
-    m_Child = EntityPtr( new Cube( assets ) );
+    std::vector< BrushPtr > brushes;
+    try {
+        // base texture
+        BmpBrush* base( new BmpBrush );
+        ASSERT( base->Load( "data/Wood.bmp"), "Error loading wood texture" );
+        brushes.push_back( BrushPtr(base) );
+    } catch ( boost::filesystem::filesystem_error &ex ) {
+        throw;
+    } catch ( std::ios_base::failure& ex ) {
+        THROW( "Error loading texture.\n%s", ex.what() );
+    } catch ( std::exception &ex ) {
+        throw;
+    } catch ( ... ) {
+        throw;
+    }
+
+    m_Child = EntityPtr( new Cube( brushes ) );
     m_Child->GetRenderState()->Translate( mid, Vector(1.0f, 1.0f, 1.0f) );
     // this entity renders
     AddEntity( m_Child, 0 );
@@ -221,7 +241,7 @@ void Flag::DoRender() throw(std::exception)
 #if _HAS_COLOR_ARRAY_
     glColorPointer(4, GL_FLOAT, 0, colors);
 #else
-    glColor4f( 0.0f, 0.4f, 1.0f, 0.8f );
+//    glColor4f( 0.0f, 0.4f, 1.0f, 0.8f );
 #endif
     if ( m_Texture) {
         m_Texture->Enable();
