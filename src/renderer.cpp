@@ -267,7 +267,7 @@ void Renderer::Run()
             for( auto it = m_RenderList.begin(); it != m_RenderList.end(); ) {
                 EntityPtr entity = *it;
                 if ( entity->AreFlagsSet( Entity::F_ENABLE ) ) {
-                    entity->Render( (timeStamp - ticks)*m_TimeBase*float(m_Pause) );
+                    entity->Render( (ticks - timeStamp)*m_TimeBase*float(m_Pause) );
                 }
                 if ( entity->AreFlagsSet( Entity::F_DELETE ) ) {
                     it = m_RenderList.erase( it );

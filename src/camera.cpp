@@ -79,13 +79,13 @@ bool Camera::HandleEvent(const SDL_Event& event)
                 processed = true;
             }
             if ( m_MouseRightDown ) {
-                m_CameraPosition[ Vector::Z ] -= (event.motion.y - m_MouseY) * 0.2f;
+                m_CameraPosition[ Vector::Z ] -= (event.motion.y - m_MouseY) * 0.25f;
                 m_MouseY = event.motion.y;
                 processed = true;
             }
             if ( m_MouseMiddleDown ) {
-                m_CameraPosition[ Vector::X ] -= (event.motion.x - m_MouseX) * 0.2f;
-                m_CameraPosition[ Vector::Y ] -= (event.motion.y - m_MouseY) * 0.2f;
+                m_CameraPosition[ Vector::X ] += (event.motion.x - m_MouseX) * 0.25f;
+                m_CameraPosition[ Vector::Y ] += (event.motion.y - m_MouseY) * 0.25f;
                 m_MouseX = event.motion.x;
                 m_MouseY = event.motion.y;
                 processed = true;

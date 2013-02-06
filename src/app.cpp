@@ -160,15 +160,9 @@ void App::InitScene( int width, int height )
 
     EntityPtr flag( new Flag( brushes ) );
     flag->GetRenderState()->Translate( Vector(0.0, 0, 0), Vector(1.0f, 1.0f, 1.0f) );
-    flag->GetRenderState()->Rotate( Vector(0.0f, 0.0f, 0.0f ) );
+    flag->GetRenderState()->Rotate( Vector(-90.0f, 0.0f, 0.0f ) );
     // this entity renders
     camera->AddEntity(flag, 20 );
-
-    EntityPtr cube( new Cube() );
-    cube->GetRenderState()->Translate( Vector(-4.0, 0, 0), Vector(1.0f, 1.0f, 1.0f) );
-    cube->GetRenderState()->Rotate( Vector(0.0f, 0.0f, 0.0f ) );
-    // this entity renders
-    camera->AddEntity(cube, 20 );
 
     // some custom event handler
     m_EventHandlerList.push_back( boost::bind( &OnHandleEvent, _1, flag ) );

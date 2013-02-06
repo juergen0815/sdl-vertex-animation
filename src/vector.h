@@ -17,10 +17,14 @@ class Vector
 {
 public:
     enum Coord {
-        X, Y, Z, W
+        X = 0, Y = 1, Z = 2, W = 3
     };
+    enum TexCoord {
+        U = 0, V = 1
+    };
+    // set indices to e.g. make this ARGB or w/e
     enum Color {
-        R, G, B, A
+        R = 0, G = 1, B = 2, A = 3
     };
 private:
     float vec[4];

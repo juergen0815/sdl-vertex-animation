@@ -77,7 +77,7 @@ void Texture::Load( const Brush& brush ) throw(std::exception)
 {
     ASSERT( brush.m_Pixels && ( brush.m_BytesPerPixel == 3 || brush.m_BytesPerPixel == 4 ),
             "Invalid brush for texture!" );
-    Load( brush.m_Pixels, brush.m_Width, brush.m_Height, brush.m_BytesPerPixel, brush.m_BytesPerPixel == 3 ? GL_BGR : GL_BGRA );
+    Load( brush.m_Pixels, brush.m_Width, brush.m_Height, brush.m_BytesPerPixel, brush.m_BytesPerPixel == 3 ? GL_RGB : GL_RGBA );// GL_BGR : GL_BGRA );
 }
 
 unsigned int Texture::GetTextureId() const
