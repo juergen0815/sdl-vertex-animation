@@ -15,7 +15,7 @@
 
 #include <boost/filesystem.hpp>
 
-const int sCcolumns = 120;
+const int sColumns = 120;
 const int sRows    = 120;
 
 struct PoolDeleter
@@ -39,12 +39,12 @@ Surface::Surface( const std::vector< BrushPtr >& assets )
     // we might just want to create this in DoInitialize - and throw away the data we don't need locally
 
     // allocate memory buffers for vertex and texture coord
-    m_VertexBuffer.resize( sCcolumns*sRows );
-    m_TexCoordBuffer.resize( sCcolumns*sRows );
+    m_VertexBuffer.resize( sColumns*sRows );
+    m_TexCoordBuffer.resize( sColumns*sRows );
 
 
     // generate index array; we got rows * columns * 2 tris
-    m_IndexArray.resize( (sRows-1) * (sCcolumns-1) * 3 * 2 ); // 3 vertices per tri, 2 tri per quad = 6 entries per iteration
+    m_IndexArray.resize( (sRows-1) * (sColumns-1) * 3 * 2 ); // 3 vertices per tri, 2 tri per quad = 6 entries per iteration
 
     int looper(0);
     // width x height is always a quad, not a rect
@@ -52,7 +52,7 @@ Surface::Surface( const std::vector< BrushPtr >& assets )
     const float height_2 = 5.0f;
 
     // generate vertex array
-    const float xstep = (2*width_2)/sCcolumns; // mesh sub divider - 0.2f
+    const float xstep = (2*width_2)/sColumns; // mesh sub divider - 0.2f
     const float ystep = (2*height_2)/sRows; // mesh sub divider - 0.2f
     const float amp  = 0.85f; // "height" of wave
     const float numWaves = 16.0f; // num of sin loops (or waves)
@@ -62,17 +62,17 @@ Surface::Surface( const std::vector< BrushPtr >& assets )
     // I think we need an additional row/column to finish this mesh ??
     for ( float y = 0; y < sRows; ++y )
     {
-        for ( float x = 0; x < sCcolumns; ++x, ++vit, ++tit )
+        for ( float x = 0; x < sColumns; ++x, ++vit, ++tit )
         {
             Vector& vertex = *vit;
             vertex[ Vector::X ] = x * xstep - width_2; // -4.4 ... +4.4
             vertex[ Vector::Y ] = y * ystep - height_2; // -4.4 ... +4.4
             // maybe I should shift this for each row, huh, norm x to "length" of column (0.0 - 1.0)
-            vertex[ Vector::Z ] = std::sin( (x/sCcolumns) * numWaves ) * amp; // make z a big "wavy"
+            vertex[ Vector::Z ] = std::sin( (x/sColumns) * numWaves ) * amp; // make z a big "wavy"
 
             // calc texture positions
             Vector& texCoord = *tit;
-            texCoord[ Vector::U ] = x/(sCcolumns-1);
+            texCoord[ Vector::U ] = x/(sColumns-1);
             texCoord[ Vector::V ] = y/(sRows-1);
 
             // this needs work: we use a row * col vertex and texture array
@@ -87,25 +87,25 @@ Surface::Surface( const std::vector< BrushPtr >& assets )
             // e.g. t[0] = { 0,1,1'} { 1',0',1 } ...
 
             // skip last column/row - already indexed
-            if ( x < (sCcolumns-1) && y < (sRows-1) ) {
+            if ( x < (sColumns-1) && y < (sRows-1) ) {
                 // vertices don't need to be set just yet. We just index them here
 
                 // top tri
                 int
-                idx = int(x + 0 + sCcolumns*y);     m_IndexArray[ looper++ ] = idx;  // 0x0
-                idx = int(x + 1 + sCcolumns*y);     m_IndexArray[ looper++ ] = idx;  // 1x0
-                idx = int(x + 0 + sCcolumns*(y+1)); m_IndexArray[ looper++ ] = idx;  // 1x1 - bottom row
+                idx = int(x + 0 + sColumns*y);     m_IndexArray[ looper++ ] = idx;  // 0x0
+                idx = int(x + 1 + sColumns*y);     m_IndexArray[ looper++ ] = idx;  // 1x0
+                idx = int(x + 0 + sColumns*(y+1)); m_IndexArray[ looper++ ] = idx;  // 1x1 - bottom row
 
                 // bottom tri
-                idx = int(x + 1 + sCcolumns*y);     m_IndexArray[ looper++ ] = idx; // 0x0
-                idx = int(x + 0 + sCcolumns*(y+1)); m_IndexArray[ looper++ ] = idx; // 1x1 - bottom row
-                idx = int(x + 1 + sCcolumns*(y+1)); m_IndexArray[ looper++ ] = idx; // 0x1 - bottom row
+                idx = int(x + 1 + sColumns*y);     m_IndexArray[ looper++ ] = idx; // 0x0
+                idx = int(x + 0 + sColumns*(y+1)); m_IndexArray[ looper++ ] = idx; // 1x1 - bottom row
+                idx = int(x + 1 + sColumns*(y+1)); m_IndexArray[ looper++ ] = idx; // 0x1 - bottom row
                 idx = 0;
             }
         }
     }
 
-    auto mid = m_VertexBuffer[ sCcolumns*sRows/2-sCcolumns/2 ];
+    auto mid = m_VertexBuffer[ sColumns*sRows/2-sColumns/2 ];
 
     std::vector< BrushPtr > brushes;
     try {
@@ -298,7 +298,7 @@ void Surface::DoUpdate( float ticks ) throw(std::exception)
         // But we have all luxury a vector has, e.g. normalizing, dot and cross product, etc.
 
         // use mid point of mesh
-        auto mid = m_VertexBuffer[ sCcolumns*sRows/2-sCcolumns/2 ];
+        auto mid = m_VertexBuffer[ sColumns*sRows/2-sColumns/2 ];
         // let it "swim"
         m_Child ->GetRenderState()->GetMatrix().LoadIdentity().Translate( mid );
     }
