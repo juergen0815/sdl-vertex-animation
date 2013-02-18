@@ -15,8 +15,8 @@
 
 #include <boost/filesystem.hpp>
 
-const int columns = 120;
-const int rows    = 120;
+const int sCcolumns = 120;
+const int sRows    = 120;
 
 struct PoolDeleter
 {
@@ -27,7 +27,7 @@ struct PoolDeleter
     }
 };
 
-Flag::Flag( const std::vector< BrushPtr >& assets )
+Surface::Surface( const std::vector< BrushPtr >& assets )
     : m_VboID(-1)
     , m_Assets( assets )
     , m_MemoryPool( EntityPool::CreatePool<Vector>( 0 ), PoolDeleter() )
@@ -39,12 +39,12 @@ Flag::Flag( const std::vector< BrushPtr >& assets )
     // we might just want to create this in DoInitialize - and throw away the data we don't need locally
 
     // allocate memory buffers for vertex and texture coord
-    m_VertexBuffer.resize( columns*rows );
-    m_TexCoordBuffer.resize( columns*rows );
+    m_VertexBuffer.resize( sCcolumns*sRows );
+    m_TexCoordBuffer.resize( sCcolumns*sRows );
 
 
     // generate index array; we got rows * columns * 2 tris
-    m_IndexArray.resize( (rows-1) * (columns-1) * 3 * 2 ); // 3 vertices per tri, 2 tri per quad = 6 entries per iteration
+    m_IndexArray.resize( (sRows-1) * (sCcolumns-1) * 3 * 2 ); // 3 vertices per tri, 2 tri per quad = 6 entries per iteration
 
     int looper(0);
     // width x height is always a quad, not a rect
@@ -52,28 +52,28 @@ Flag::Flag( const std::vector< BrushPtr >& assets )
     const float height_2 = 5.0f;
 
     // generate vertex array
-    const float xstep = (2*width_2)/columns; // mesh sub divider - 0.2f
-    const float ystep = (2*height_2)/rows; // mesh sub divider - 0.2f
+    const float xstep = (2*width_2)/sCcolumns; // mesh sub divider - 0.2f
+    const float ystep = (2*height_2)/sRows; // mesh sub divider - 0.2f
     const float amp  = 0.85f; // "height" of wave
     const float numWaves = 16.0f; // num of sin loops (or waves)
     auto vit = m_VertexBuffer.begin();
     auto tit = m_TexCoordBuffer.begin();
 
     // I think we need an additional row/column to finish this mesh ??
-    for ( float y = 0; y < rows; ++y )
+    for ( float y = 0; y < sRows; ++y )
     {
-        for ( float x = 0; x < columns; ++x, ++vit, ++tit )
+        for ( float x = 0; x < sCcolumns; ++x, ++vit, ++tit )
         {
             Vector& vertex = *vit;
             vertex[ Vector::X ] = x * xstep - width_2; // -4.4 ... +4.4
             vertex[ Vector::Y ] = y * ystep - height_2; // -4.4 ... +4.4
             // maybe I should shift this for each row, huh, norm x to "length" of column (0.0 - 1.0)
-            vertex[ Vector::Z ] = std::sin( (x/columns) * numWaves ) * amp; // make z a big "wavy"
+            vertex[ Vector::Z ] = std::sin( (x/sCcolumns) * numWaves ) * amp; // make z a big "wavy"
 
             // calc texture positions
             Vector& texCoord = *tit;
-            texCoord[ Vector::U ] = x/(columns-1);
-            texCoord[ Vector::V ] = y/(rows-1);
+            texCoord[ Vector::U ] = x/(sCcolumns-1);
+            texCoord[ Vector::V ] = y/(sRows-1);
 
             // this needs work: we use a row * col vertex and texture array
             // to extract triangles, the index array needs to be calculated appropriately
@@ -87,25 +87,25 @@ Flag::Flag( const std::vector< BrushPtr >& assets )
             // e.g. t[0] = { 0,1,1'} { 1',0',1 } ...
 
             // skip last column/row - already indexed
-            if ( x < (columns-1) && y < (rows-1) ) {
+            if ( x < (sCcolumns-1) && y < (sRows-1) ) {
                 // vertices don't need to be set just yet. We just index them here
 
                 // top tri
                 int
-                idx = int(x + 0 + columns*y);     m_IndexArray[ looper++ ] = idx;  // 0x0
-                idx = int(x + 1 + columns*y);     m_IndexArray[ looper++ ] = idx;  // 1x0
-                idx = int(x + 0 + columns*(y+1)); m_IndexArray[ looper++ ] = idx;  // 1x1 - bottom row
+                idx = int(x + 0 + sCcolumns*y);     m_IndexArray[ looper++ ] = idx;  // 0x0
+                idx = int(x + 1 + sCcolumns*y);     m_IndexArray[ looper++ ] = idx;  // 1x0
+                idx = int(x + 0 + sCcolumns*(y+1)); m_IndexArray[ looper++ ] = idx;  // 1x1 - bottom row
 
                 // bottom tri
-                idx = int(x + 1 + columns*y);     m_IndexArray[ looper++ ] = idx; // 0x0
-                idx = int(x + 0 + columns*(y+1)); m_IndexArray[ looper++ ] = idx; // 1x1 - bottom row
-                idx = int(x + 1 + columns*(y+1)); m_IndexArray[ looper++ ] = idx; // 0x1 - bottom row
+                idx = int(x + 1 + sCcolumns*y);     m_IndexArray[ looper++ ] = idx; // 0x0
+                idx = int(x + 0 + sCcolumns*(y+1)); m_IndexArray[ looper++ ] = idx; // 1x1 - bottom row
+                idx = int(x + 1 + sCcolumns*(y+1)); m_IndexArray[ looper++ ] = idx; // 0x1 - bottom row
                 idx = 0;
             }
         }
     }
 
-    auto mid = m_VertexBuffer[ columns*rows/2-columns/2 ];
+    auto mid = m_VertexBuffer[ sCcolumns*sRows/2-sCcolumns/2 ];
 
     std::vector< BrushPtr > brushes;
     try {
@@ -129,7 +129,7 @@ Flag::Flag( const std::vector< BrushPtr >& assets )
     AddEntity( m_Child, 0 );
 }
 
-Flag::~Flag()
+Surface::~Surface()
 {
     // shouldn't be done in d'tor...might be weakly linked to e.g. event handler...but vbo must be released from render thread
     if ( m_VboID > 0 ) {
@@ -137,7 +137,7 @@ Flag::~Flag()
     }
 }
 
-bool Flag::DoInitialize( Renderer* renderer ) throw(std::exception)
+bool Surface::DoInitialize( Renderer* renderer ) throw(std::exception)
 {
     bool r(false);
 
@@ -179,7 +179,7 @@ bool Flag::DoInitialize( Renderer* renderer ) throw(std::exception)
     return r;
 }
 
-void Flag::DoRender() throw(std::exception)
+void Surface::DoRender() throw(std::exception)
 {
 #if _HAS_NORMALS_
     // enable vertex arrays
@@ -278,7 +278,7 @@ void Flag::DoRender() throw(std::exception)
 #endif
 }
 
-void Flag::DoUpdate( float ticks ) throw(std::exception)
+void Surface::DoUpdate( float ticks ) throw(std::exception)
 {
     m_TimeEllapsed += ticks;
     if ( m_TimeEllapsed*m_Speed > 16.67 )
@@ -298,7 +298,7 @@ void Flag::DoUpdate( float ticks ) throw(std::exception)
         // But we have all luxury a vector has, e.g. normalizing, dot and cross product, etc.
 
         // use mid point of mesh
-        auto mid = m_VertexBuffer[ columns*rows/2-columns/2 ];
+        auto mid = m_VertexBuffer[ sCcolumns*sRows/2-sCcolumns/2 ];
         // let it "swim"
         m_Child ->GetRenderState()->GetMatrix().LoadIdentity().Translate( mid );
     }
